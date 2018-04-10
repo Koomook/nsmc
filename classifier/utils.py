@@ -28,7 +28,7 @@ def multi_head_attention(query, key=None, n_heads=8, causalty=True, keep_prob=0.
         if causalty:
             with tf.variable_scope('tril'):
                 diagonal = tf.ones_like(logits[0,:,:])
-                if tf.__version__ == '1.4.0':# aihub
+                if tf.__version__ == '1.4.0':
                     tril_fn = tf.contrib.linalg.LinearOperatorTriL
                 elif tf.__version__ == '1.5.0':
                     tril_fn = tf.contrib.linalg.LinearOperatorLowerTriangular
@@ -84,10 +84,12 @@ def layer_norm(inputs, epsilon=1e-6):
             "scale", [filters], initializer=tf.ones_initializer())
         bias = tf.get_variable(
             "bias", [filters], initializer=tf.zeros_initializer())
-
-        mean = tf.reduce_mean(inputs, axis=-1, keepdims=True)
-        variance = tf.reduce_mean(tf.square(inputs-mean), axis=-1, keepdims=True)
-
+        if tf.__version__ == '1.4.0':
+            mean = tf.reduce_mean(inputs, axis=-1, keep_dims=True)
+            variance = tf.reduce_mean(tf.square(inputs-mean), axis=-1, keep_dims=True)
+        elif tf.__version__ == '1.5.0':
+            mean = tf.reduce_mean(inputs, axis=-1, keepdims=True)
+            variance = tf.reduce_mean(tf.square(inputs-mean), axis=-1, keepdims=True)
         noise_sigma = tf.sqrt(variance + epsilon)
         return tf.divide(tf.subtract(inputs, mean), noise_sigma)
 
