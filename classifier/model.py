@@ -41,14 +41,14 @@ class AttentionMLP(object):
             self.encoder_inputs = add_timing_signal_1d(self.inputs_embedded)
             self.outputs = self.self_attention(self.encoder_inputs)
             
-            self.logits = dense(self.outputs, self.n_target, name='logits')
+            self.logits = dense(tf.reshape(self.outputs,[-1,self.vocab_size*self.embedding_size]), self.n_target, name='logits')
 
     def load_inputs(self):
         """Declare fundamental placeholder and weights to use for model"""
         
         self.inputs = tf.placeholder(tf.int32, shape=(None,self.n_input), name='inputs')
         self.inputs_mask = tf.placeholder(tf.float32, shape=(None, self.n_input), name='inputs_mask')
-        self.targets = tf.placeholder(tf.int32, shape=(None,self.n_target), name='targets')
+        self.targets = tf.placeholder(tf.int32, shape=(None,1), name='targets')
         self.keep_prob = tf.placeholder(tf.float32, name='keep_prob')
 
     def declare_variables(self):
