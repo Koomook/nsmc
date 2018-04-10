@@ -10,18 +10,26 @@ class Preprocessor():
     Tagging and padding data
     """
     def __init__(self, 
-                 input_path,
-                 max_len,
-                 min_len,
-                 use_min_cnt,
-                 word_min_cnt,
+                 input_path=None,
+                 max_len=None,
+                 min_len=None,
+                 use_min_cnt=None,
+                 word_min_cnt=None,
+                 load_preprocessed=False,
+                 dir_path=None
                  ):
-        self.df = pd.read_table(input_path)
-        self.max_len, self.min_len = max_len, min_len
-        self.use_min_cnt = use_min_cnt
-        self.word_min_cnt = word_min_cnt
+        if not load_preprocessed:
+            """
+            This must be changed
+            """
+            self.df = pd.read_table(input_path)
+            self.max_len, self.min_len = max_len, min_len
+            self.use_min_cnt = use_min_cnt
+            self.word_min_cnt = word_min_cnt
 
-        self.tagger = Mecab()
+            self.tagger = Mecab()
+        else:
+            self.load(dir_path)
 
     def preprocess(self):
         """
@@ -91,3 +99,17 @@ class Preprocessor():
         self.data.to_csv(os.path.join(save_path, 'data.csv'), index=False)
         for obj in ['w2i', 'i2w', 'unique_words']:
             np.save(os.path.join(save_path, obj), getattr(self, obj))
+
+    def load(self, dir_path):
+        for f in os.listdir(dir_path):
+            if re.search('npy', f):
+                setattr(self, f[:-4], np.load(os.path.join(dir_path, f)))
+        self.data = pd.read_csv(os.path.join(dir_path, 'data.csv'))
+
+    def generate_batch(self, batch_size):
+        while True:
+            batch_idx = np.random.randint(0, self.data.shape[0], size=batch_size)
+            batch_data = self.data.values[batch_idx]
+            batch_inputs =  np.concatenate(batch_data[:,0]).reshape([batch_size,-1])
+            batch_targets = np.expand_dims(batch_data[:,1], axis=1)
+            yield batch_inputs, batch_targets
