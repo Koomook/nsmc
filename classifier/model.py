@@ -41,7 +41,7 @@ class AttentionMLP(object):
             self.encoder_inputs = add_timing_signal_1d(self.inputs_embedded)
             self.outputs = self.self_attention(self.encoder_inputs)
             
-            self.logits = dense(tf.reshape(self.outputs,[-1,self.vocab_size*self.embedding_size]), self.n_target, name='logits')
+            self.logits = dense(tf.reshape(self.outputs,[-1,1,self.vocab_size*self.embedding_size]), self.n_target, name='logits')
 
     def load_inputs(self):
         """Declare fundamental placeholder and weights to use for model"""
