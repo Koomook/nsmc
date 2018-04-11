@@ -112,6 +112,9 @@ class Preprocessor():
         for f in os.listdir(dir_path):
             if re.search('npy', f):
                 setattr(self, f[:-4], np.load(os.path.join(dir_path, f)))
+        # dictionary
+        self.w2i = self.w2i.item()
+        self.i2w = self.i2w.item()
         self.data = pd.read_csv(os.path.join(dir_path, 'data.csv'))
 
     def generate_batch(self, batch_size):
