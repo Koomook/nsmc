@@ -31,7 +31,7 @@ class Preprocessor():
         else:
             self.load(dir_path)
 
-    def _tag(df):
+    def _tag(self, df):
         df = df.assign(
             processed = df['document'].apply(lambda x :''.join(re.findall('[가-힣\s0-9]',str(x)))),
         ).dropna()
@@ -42,10 +42,10 @@ class Preprocessor():
             mecab_len = df['mecab'].apply(lambda x: len(x))
         )
 
-    def _cut_by_len(df):
+    def _cut_by_len(self, df):
         return df.loc[lambda x:(x.mecab_len<=self.max_len) & (x.mecab_len>=self.min_len)]
 
-    def _drop_pad(df):
+    def _drop_pad(self, df):
         def _drop_absent(li):
             try:
                 return [self.w2i[w] for w in li]
