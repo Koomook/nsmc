@@ -145,12 +145,13 @@ class StepBasedTrainer():
                 zipped = zip(self.placeholders, valid_batch)
                 valid_dict.update(zipped)
                 valid_dict.update({self.keep_prob_placeholder:1.0})
-                valid_loss_value, valid_acc = self.session.run([self.loss, self.acc], feed_dict=valid_dict)
+                valid_loss, valid_acc = self.session.run([self.loss, self.acc], feed_dict=valid_dict)
                 # Leave log
                 base_message = ("Step: {step:<6d} "
-                                " Average Loss: {average_loss:<.6}"
-                                " Instant Loss: {loss:<.6}"
-                                " Accuracy: {acc:<.3}"
+                                " Training Loss: {average_loss:<.6}"
+                                " Valid Loss: {valid_loss:<.6}"
+                                " Training Accuracy: {average_acc:<.3}"
+                                " Valid Accuracy: {valid_acc:<.3}"
                                 " Learning rate: {learning_rate:<.6} ")
 
                 message = base_message.format(
