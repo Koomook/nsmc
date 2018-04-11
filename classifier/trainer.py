@@ -27,8 +27,9 @@ class StepBasedTrainer():
                  optimizer, 
                  loss, 
                  acc, 
-                 placeholders, 
-                 keep_prob_dict, 
+                 placeholders,
+                 keep_prob_placeholder,
+                 keep_prob, 
                  lr_placeholder, 
                  model_channel,
                  max_step=100000, 
@@ -49,7 +50,8 @@ class StepBasedTrainer():
         self.loss = loss
         self.acc = acc
         self.placeholders = placeholders
-        self.keep_prob_dict = keep_prob_dict
+        self.keep_prob_placeholder = keep_prob_placeholder
+        self.keep_prob = keep_prob
         self.lr_placeholder = lr_placeholder
 
         self.scaled_channel = model_channel**(-0.5)
@@ -104,12 +106,13 @@ class StepBasedTrainer():
 
         self.logger = logging.getLogger()
 
-    def run(self, train_batch_producer):
+    def run(self, train_batch_producer, valid_batch_producer):
         """Run optimizer with given training and validation dataset
         This prints training logs and save the model during the training
 
         Args:
             train_batch_producer: a generator that produces training data to feed model
+            valid_batch_producer: a generator that produces valid data to feed model
         """
         print('It runs')
         lr = min(self.step**(-0.5), self.step*self.warmup_step**(-1.5))*self.scaled_channel
@@ -125,7 +128,7 @@ class StepBasedTrainer():
             self.feed_dict = {}
             zipped = zip(self.placeholders, data_batch)
             self.feed_dict.update(zipped)
-            self.feed_dict.update(self.keep_prob_dict)
+            self.feed_dict.update({self.keep_prob_placeholder:self.keep_prob})
             self.feed_dict.update({self.lr_placeholder:lr})
             
             _, loss_value, acc = self.session.run([self.optimizer, self.loss, self.acc], feed_dict=self.feed_dict)
@@ -136,6 +139,13 @@ class StepBasedTrainer():
 
                 average_loss = np.mean(self.loss_list)
                 average_acc = np.mean(self.acc_list)
+
+                valid_batch = next(valid_batch_producer)
+                valid_dict = {}
+                zipped = zip(self.placeholders, valid_batch)
+                valid_dict.update(zipped)
+                valid_dict.update({self.keep_prob_placeholder:1.0})
+                valid_loss_value, valid_acc = self.session.run([self.loss, self.acc], feed_dict=valid_dict)
                 # Leave log
                 base_message = ("Step: {step:<6d} "
                                 " Average Loss: {average_loss:<.6}"
