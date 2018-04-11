@@ -148,17 +148,18 @@ class StepBasedTrainer():
                 valid_loss, valid_acc = self.session.run([self.loss, self.acc], feed_dict=valid_dict)
                 # Leave log
                 base_message = ("Step: {step:<6d} "
-                                " Training Loss: {average_loss:<.6}"
+                                " Training Loss: {train_loss:<.6}"
                                 " Valid Loss: {valid_loss:<.6}"
-                                " Training Accuracy: {average_acc:<.3}"
+                                " Training Accuracy: {train_acc:<.3}"
                                 " Valid Accuracy: {valid_acc:<.3}"
                                 " Learning rate: {learning_rate:<.6} ")
 
                 message = base_message.format(
                     step=self.step,
-                    average_loss=average_loss,
-                    loss=loss_value,
-                    acc=average_acc,
+                    train_loss=average_loss,
+                    valid_loss=valid_loss,
+                    train_acc=average_acc,
+                    valid_acc=valid_acc,
                     learning_rate=lr
                 )
 
