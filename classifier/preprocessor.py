@@ -59,6 +59,12 @@ class Preprocessor():
             padded = df['mecab_index'].apply(lambda x: np.pad(x, [0,self.max_len-len(x)], 'constant'))
         )
 
+    def _split_inputs_targets(self, data):
+        data = df.loc[:,['padded', 'label']]
+        self.inputs = np.concatenate(data.values[:,0]).reshape([data.shape[0],self.max_len])
+        self.targets = np.expand_dims(data.values[:,1], axis=1)
+        return self.inputs, self.targets
+
     def preprocess_train(self):
         """
         """
@@ -88,24 +94,23 @@ class Preprocessor():
         df = self._cut_by_len(df)
         self.unique_words, self.w2i, self.i2w = _index_words(df)
         df = self._drop_pad(df)
-        self.data = df.loc[:,['padded', 'label']]
-        return self.data
+        data = df.loc[:,['padded', 'label']]
+        return self._split_inputs_targets(data)
 
     def preprocess_test(self, train_path):
         self.load(train_path)
         df = self._tag(self.df)
         df = self._cut_by_len(df)
         df = self._drop_pad(df)
-        self.data = df.loc[:,['padded', 'label']]
-        return self.data        
+        data = df.loc[:,['padded', 'label']]
+        return self._split_inputs_targets(data)
 
     def save(self, dir_path, tag=''):
         name = '{}_{}_{}_{}_{}'.format(self.max_len,self.min_len,self.use_min_cnt,self.word_min_cnt,tag)
         save_path = os.path.join(dir_path,name)
         if name not in os.listdir(dir_path):
             os.mkdir(save_path)
-        self.data.to_csv(os.path.join(save_path, 'data.csv'), index=False)
-        for obj in ['w2i', 'i2w', 'unique_words']:
+        for obj in ['w2i', 'i2w', 'unique_words', 'inputs', 'targets']:
             np.save(os.path.join(save_path, obj), getattr(self, obj))
 
     def load(self, dir_path):
@@ -115,12 +120,8 @@ class Preprocessor():
         # dictionary
         self.w2i = self.w2i.item()
         self.i2w = self.i2w.item()
-        self.data = pd.read_csv(os.path.join(dir_path, 'data.csv'))
 
     def generate_batch(self, batch_size):
         while True:
-            batch_idx = np.random.randint(0, self.data.shape[0], size=batch_size)
-            batch_data = self.data.values[batch_idx]
-            batch_inputs =  np.concatenate(batch_data[:,0]).reshape([batch_size,-1])
-            batch_targets = np.expand_dims(batch_data[:,1], axis=1)
-            yield batch_inputs, batch_targets
+            batch_idx = np.random.randint(0, self.inputs.shape[0], size=batch_size)
+            yield self.inputs[batch_idx], self.targets[batch_idx]

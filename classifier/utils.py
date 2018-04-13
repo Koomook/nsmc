@@ -32,7 +32,7 @@ def multi_head_attention(query, key=None, n_heads=8, causalty=True, keep_prob=0.
                     tril_fn = tf.contrib.linalg.LinearOperatorTriL
                 elif tf.__version__ == '1.5.0':
                     tril_fn = tf.contrib.linalg.LinearOperatorLowerTriangular
-                tril = tril_fn(diag_vals).to_dense() # (T_q, T_k)
+                tril = tril_fn(diagonal).to_dense() # (T_q, T_k)
                 masks = tf.tile(tf.expand_dims(tril,0), [shape_list(logits)[0],1,1]) # 직각삼각형을 쌓는다.
                 paddings = tf.ones_like(masks) * (-2**32+1) # extreamly small value for softmax
                 logits = tf.where(tf.equal(masks,0), paddings, logits)
