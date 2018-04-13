@@ -60,7 +60,6 @@ class Preprocessor():
         )
 
     def _split_inputs_targets(self, data):
-        data = df.loc[:,['padded', 'label']]
         self.inputs = np.concatenate(data.values[:,0]).reshape([data.shape[0],self.max_len])
         self.targets = np.expand_dims(data.values[:,1], axis=1)
         return self.inputs, self.targets
